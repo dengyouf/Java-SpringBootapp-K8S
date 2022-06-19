@@ -1,0 +1,40 @@
+pipeline {
+  environment {
+    imageName = "reg.linux.io/springboot/bootapp"
+    registryUrl= 'reg.linux.io'
+    registryCredential = 'harbor-admin-password'
+    dockerImage = ''
+  }
+  agent {node { label "k8s-master-node-build"}}
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git([url: 'https://gitee.com/dengyouf/java-spring-bootapp-k8s.git', branch: 'master', credentialsId: 'gitee-dengyouf-password'])
+
+      }
+    }
+    stage("Build Code") {
+      steps {
+          sh """
+          mvn clean install
+          """
+      }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build imageName
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+        script {
+            withDockerRegistry(credentialsId: 'harbor-admin-password', url: 'https://reg.linux.io') {
+                dockerImage.push("${env.BUILD_NUMBER}")
+            }
+        }
+      }
+    }
+  }
+}
