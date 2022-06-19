@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootapp
+spec:
+  selector:
+    matchLabels:
+      run: bootapp
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: bootapp
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+      - name: bootapp
+        image: _IMAGE_
+        ports:
+        - name: http
+          containerPort: 8080
